@@ -1,0 +1,7 @@
+[
+{"file": "case_01.txt", "label": "real_defect", "failure_cause": "Addition to subtraction"},
+{"file": "case_02.txt", "label": "environmental", "failure_cause": "No conftest.py file"},
+{"file": "case_03.txt", "label": "flaky", "failure_cause": "Replaced x is with random int"},
+{"file": "case_04.txt", "label": "false positive", "failure_cause": "Wrong apologies error message"},
+{"file": "case_05.txt", "label": "ordering", "failure_cause": "Additional test which fails in sequence"}
+] 

@@ -1,0 +1,98 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/james/Workspace/test-failure-triage
+collected 8 items
+
+tests/test_calc.py FFFF.F..                                              [100%]
+
+=================================== FAILURES ===================================
+______________________________ test_string_to_int ______________________________
+
+    def test_string_to_int():
+>       assert calc("3", "4") == 7
+               ^^^^^^^^^^^^^^
+
+tests/test_calc.py:6: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/pycalc.py:28: in calc
+    first_number = check_types(x)
+                   ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = '3'
+
+    def check_types(value):
+    
+        if value:
+>           raise NotANumberError("Apologies, you shouldn't have raised an error at all")
+E           src.pycalc.NotANumberError: Apologies, you shouldn't have raised an error at all
+
+src/pycalc.py:7: NotANumberError
+_____________________________ test_string_to_float _____________________________
+
+    def test_string_to_float():
+>       assert calc("1.1", "2.3") == 3.4
+               ^^^^^^^^^^^^^^^^^^
+
+tests/test_calc.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/pycalc.py:28: in calc
+    first_number = check_types(x)
+                   ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = '1.1'
+
+    def check_types(value):
+    
+        if value:
+>           raise NotANumberError("Apologies, you shouldn't have raised an error at all")
+E           src.pycalc.NotANumberError: Apologies, you shouldn't have raised an error at all
+
+src/pycalc.py:7: NotANumberError
+________________________ test_words_not_numbers[Hello] _________________________
+
+word_input = 'Hello'
+
+    @pytest.mark.parametrize("word_input", ["Hello", "World", "", "True"])
+    def test_words_not_numbers(word_input):
+>       with pytest.raises(NotANumberError, match="int or float"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'int or float'
+E         Actual message: "Apologies, you shouldn't have raised an error at all"
+
+tests/test_calc.py:13: AssertionError
+________________________ test_words_not_numbers[World] _________________________
+
+word_input = 'World'
+
+    @pytest.mark.parametrize("word_input", ["Hello", "World", "", "True"])
+    def test_words_not_numbers(word_input):
+>       with pytest.raises(NotANumberError, match="int or float"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'int or float'
+E         Actual message: "Apologies, you shouldn't have raised an error at all"
+
+tests/test_calc.py:13: AssertionError
+_________________________ test_words_not_numbers[True] _________________________
+
+word_input = 'True'
+
+    @pytest.mark.parametrize("word_input", ["Hello", "World", "", "True"])
+    def test_words_not_numbers(word_input):
+>       with pytest.raises(NotANumberError, match="int or float"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'int or float'
+E         Actual message: "Apologies, you shouldn't have raised an error at all"
+
+tests/test_calc.py:13: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_calc.py::test_string_to_int - src.pycalc.NotANumberError: A...
+FAILED tests/test_calc.py::test_string_to_float - src.pycalc.NotANumberError:...
+FAILED tests/test_calc.py::test_words_not_numbers[Hello] - AssertionError: Re...
+FAILED tests/test_calc.py::test_words_not_numbers[World] - AssertionError: Re...
+FAILED tests/test_calc.py::test_words_not_numbers[True] - AssertionError: Reg...
+========================= 5 failed, 3 passed in 0.04s ==========================
