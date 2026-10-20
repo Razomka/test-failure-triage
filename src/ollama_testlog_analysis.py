@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from pathlib import Path
 from typing import Literal
 
-prompt_text = "Analyse this pytest failure log and classify it: This is the log here -----"
+prompt_text = "Analyse this pytest failure log and classify it: This is the log here" 
 PROMPT_VERSION = "v1"
 PROMPT_HASH = hashlib.sha256(prompt_text.encode()).hexdigest()[:8]
 AI_MODEL = "gemma4:e2b"
