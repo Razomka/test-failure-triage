@@ -21,3 +21,8 @@ def test_nan_and_inf(nan_input):
     with pytest.raises(NotANumberError, match="Apologies"):
         calc(nan_input, "1")
         calc("2.0", nan_input)
+
+def test_false_positive():
+    with pytest.raises(NotANumberError, match="The input entered was neither int or float compatible," \
+                              " therefore this error has been encountered"):
+        calc("hello", "4")

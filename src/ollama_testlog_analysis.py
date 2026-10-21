@@ -14,7 +14,7 @@ AI_MODEL = "gemma4:e2b"
 new_prompt_version = PROMPT_VERSION
 
 class TestFailures(BaseModel):
-    category: Literal['Real Defect', 'Environmental Issue', 'Flaky/Timing Issue', 'False Positive Issue', 'Ordering Issue']
+    category: Literal['Real Defect', 'Environmental Issue', 'Flaky/Timing Issue', 'False Positive Issue', 'Ordering Issue', 'No Coverage']
     reasoning: str
     confidence: Literal['Low', 'Medium', 'High']
 
