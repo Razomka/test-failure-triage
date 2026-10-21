@@ -36,7 +36,7 @@ if PROMPT_HASH not in json_file:
 fail_path = Path("failures")
 case_files = list(fail_path.glob('**/case*.txt'))
 
-ai_result_log = Path("ai_results/ai_run.json")
+ai_result_log = Path(f"ai_results/ai_results_{AI_MODEL}_{new_prompt_version}_{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.json")
 try:
     with open(ai_result_log) as ai_file:
         ai_json_result_file = json.load(ai_file)
