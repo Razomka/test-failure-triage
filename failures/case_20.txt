@@ -1,0 +1,43 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/james/Workspace/test-failure-triage
+plugins: anyio-4.15.1
+collected 9 items
+
+tests/test_calc.py FF.......                                             [100%]
+
+=================================== FAILURES ===================================
+______________________________ test_string_to_int ______________________________
+
+    def test_string_to_int():
+>       assert calc("3", "4") == ["foo", "bar", "foobar", "foofoo", "barbar"]
+E       AssertionError: assert ['foo', 'foob...oo', 'barbar'] == ['foo', 'bar'...oo', 'barbar']
+E         
+E         At index 1 diff: 'foobar' != 'bar'
+E         Use -v to get more diff
+
+tests/test_calc.py:8: AssertionError
+----------------------------- Captured stdout call -----------------------------
+Confirming either int or float
+First number Type <class 'int'>
+Second number Type <class 'int'>
+Adding: 3 and 4 to get 7
+_____________________________ test_string_to_float _____________________________
+
+    def test_string_to_float():
+>       assert calc("1.1", "2.3") == ["foo", "bar", "foobar", "foofoo", "barbar"]
+E       AssertionError: assert ['foo', 'foob...oo', 'barbar'] == ['foo', 'bar'...oo', 'barbar']
+E         
+E         At index 1 diff: 'foobar' != 'bar'
+E         Use -v to get more diff
+
+tests/test_calc.py:11: AssertionError
+----------------------------- Captured stdout call -----------------------------
+Confirming either int or float
+First number Type <class 'float'>
+Second number Type <class 'float'>
+Adding: 1.1 and 2.3 to get 3.4
+=========================== short test summary info ============================
+FAILED tests/test_calc.py::test_string_to_int - AssertionError: assert ['foo'...
+FAILED tests/test_calc.py::test_string_to_float - AssertionError: assert ['fo...
+========================= 2 failed, 7 passed in 0.04s ==========================

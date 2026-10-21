@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/james/Workspace/test-failure-triage
+plugins: anyio-4.15.1
+collected 10 items
+
+tests/test_calc.py .........F                                            [100%]
+
+=================================== FAILURES ===================================
+_______________________________ test_helper_func _______________________________
+
+    def test_helper_func():
+>       assert helper_func(5) == [5]
+E       assert [1, 5] == [5]
+E         
+E         At index 0 diff: 1 != 5
+E         Left contains one more item: 5
+E         Use -v to get more diff
+
+tests/test_calc.py:35: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_calc.py::test_helper_func - assert [1, 5] == [5]
+========================= 1 failed, 9 passed in 0.04s ==========================
