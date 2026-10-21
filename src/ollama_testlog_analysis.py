@@ -7,14 +7,14 @@ from pydantic import BaseModel
 from pathlib import Path
 from typing import Literal
 
-prompt_text = "Analyse this pytest failure log and classify it: This is the log here" 
+prompt_text = "Analyse this pytest failure log and classify it: This is the log here:" 
 PROMPT_VERSION = "v1"
 PROMPT_HASH = hashlib.sha256(prompt_text.encode()).hexdigest()[:8]
 AI_MODEL = "gemma4:e2b"
 new_prompt_version = PROMPT_VERSION
 
 class TestFailures(BaseModel):
-    category: Literal['Code Bug Issue', 'Environmental Issue', 'Flaky/Timing Issue', 'False Positive Issue', 'Ordering Issue']
+    category: Literal['Real Defect', 'Environmental Issue', 'Flaky/Timing Issue', 'False Positive Issue', 'Ordering Issue']
     reasoning: str
     confidence: Literal['Low', 'Medium', 'High']
 
@@ -36,20 +36,39 @@ if PROMPT_HASH not in json_file:
 fail_path = Path("failures")
 case_files = list(fail_path.glob('**/case*.txt'))
 
-ai_result_log = Path("ai_results/ai_run.txt")
-with open(ai_result_log, 'a') as ai_file:
-    for testlog in case_files:
-        with open(testlog) as case_logs:
-            log = case_logs.read()
+ai_result_log = Path("ai_results/ai_run.json")
+try:
+    with open(ai_result_log) as ai_file:
+        ai_json_result_file = json.load(ai_file)
+except FileNotFoundError, json.JSONDecodeError:
+    ai_json_result_file = {}
 
-            response: ChatResponse = chat(
-            model='gemma4:e2b',
-            messages=[
-                {
-                'role': 'user',
-                'content': f'{prompt_text} {log}',
-                },
-            ],
-            format=TestFailures.model_json_schema()
-            )
-            ai_file.write(f"{testlog} {datetime.datetime.now()} {new_prompt_version} {AI_MODEL}\n" + response['message']['content']+"\n\n")
+results = []
+for testlog in case_files:
+    with open(testlog) as case_logs:
+        log = case_logs.read()
+
+
+        response: ChatResponse = chat(
+        model='gemma4:e2b',
+        messages=[
+            {
+            'role': 'user',
+            'content': f'{prompt_text} {log}',
+            },
+        ],
+        options = {"temperature": 0},
+        format=TestFailures.model_json_schema()
+        )
+        ai_results = json.loads(response['message']['content'])
+        ai_results["filename"] = str(testlog.name)
+        results.append(ai_results)
+
+with open(ai_result_log, "w") as ai_file:
+    ai_json_result_file["model"] = AI_MODEL
+    ai_json_result_file["prompt_version"] = new_prompt_version
+    ai_json_result_file["timestamp"] = datetime.datetime.now().isoformat()
+    ai_json_result_file["Temperate"] = "0"
+    ai_json_result_file["results"] = results
+
+    json.dump(ai_json_result_file, ai_file)
