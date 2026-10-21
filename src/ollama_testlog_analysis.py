@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 import hashlib
 import json
 from ollama import chat
@@ -14,7 +14,7 @@ AI_MODEL = "gemma4:e2b"
 new_prompt_version = PROMPT_VERSION
 
 class TestFailures(BaseModel):
-    category: Literal['Real Defect', 'Environmental Issue', 'Flaky/Timing Issue', 'False Positive Issue', 'Ordering Issue']
+    category: Literal['Real Defect', 'Environmental Issue', 'Flaky/Timing Issue', 'False Positive Issue', 'Ordering Issue', 'No Coverage']
     reasoning: str
     confidence: Literal['Low', 'Medium', 'High']
 
@@ -36,7 +36,7 @@ if PROMPT_HASH not in json_file:
 fail_path = Path("failures")
 case_files = list(fail_path.glob('**/case*.txt'))
 
-ai_result_log = Path(f"ai_results/ai_results_{AI_MODEL}_{new_prompt_version}_{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.json")
+ai_result_log = Path(f"ai_results/ai_results_{AI_MODEL}_{new_prompt_version}_{dt.datetime.now().strftime('%Y%m%d-%H%M%S')}.json")
 try:
     with open(ai_result_log) as ai_file:
         ai_json_result_file = json.load(ai_file)
@@ -67,7 +67,7 @@ for testlog in case_files:
 with open(ai_result_log, "w") as ai_file:
     ai_json_result_file["model"] = AI_MODEL
     ai_json_result_file["prompt_version"] = new_prompt_version
-    ai_json_result_file["timestamp"] = datetime.datetime.now().isoformat()
+    ai_json_result_file["timestamp"] = dt.datetime.now().isoformat()
     ai_json_result_file["Temperate"] = "0"
     ai_json_result_file["results"] = results
 

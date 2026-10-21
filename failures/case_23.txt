@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/james/Workspace/test-failure-triage
+plugins: anyio-4.15.1
+collected 11 items
+
+tests/test_calc.py ..........F                                           [100%]
+
+=================================== FAILURES ===================================
+________________________ test_ensure_test_file_deleted _________________________
+
+    def test_ensure_test_file_deleted():
+        file_path = Path("tests/test_tmp_files/new_file.txt")
+>       assert os.path.exists(file_path) == False
+E       AssertionError: assert True == False
+E        +  where True = <function exists at 0x7c8cd4951e80>(PosixPath('tests/test_tmp_files/new_file.txt'))
+E        +    where <function exists at 0x7c8cd4951e80> = <module 'posixpath' (frozen)>.exists
+E        +      where <module 'posixpath' (frozen)> = os.path
+
+tests/test_calc.py:38: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_calc.py::test_ensure_test_file_deleted - AssertionError: as...
+========================= 1 failed, 10 passed in 0.04s =========================

@@ -1,0 +1,39 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/james/Workspace/test-failure-triage
+plugins: anyio-4.15.1
+collected 8 items
+
+tests/test_calc.py FF......                                              [100%]
+
+=================================== FAILURES ===================================
+______________________________ test_string_to_int ______________________________
+
+    def test_string_to_int():
+>       assert calc("3", "4") == 7
+E       AssertionError: assert -7 == 7
+E        +  where -7 = calc('3', '4')
+
+tests/test_calc.py:8: AssertionError
+----------------------------- Captured stdout call -----------------------------
+Confirming either int or float
+First number Type <class 'int'>
+Second number Type <class 'int'>
+Adding: 3 and 4 to get -7
+_____________________________ test_string_to_float _____________________________
+
+    def test_string_to_float():
+>       assert calc("1.1", "2.3") == 3.4
+E       AssertionError: assert -3.4 == 3.4
+E        +  where -3.4 = calc('1.1', '2.3')
+
+tests/test_calc.py:11: AssertionError
+----------------------------- Captured stdout call -----------------------------
+Confirming either int or float
+First number Type <class 'float'>
+Second number Type <class 'float'>
+Adding: 1.1 and 2.3 to get -3.4
+=========================== short test summary info ============================
+FAILED tests/test_calc.py::test_string_to_int - AssertionError: assert -7 == 7
+FAILED tests/test_calc.py::test_string_to_float - AssertionError: assert -3.4...
+========================= 2 failed, 6 passed in 0.04s ==========================
