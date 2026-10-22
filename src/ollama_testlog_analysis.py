@@ -7,11 +7,19 @@ from pydantic import BaseModel
 from pathlib import Path
 from typing import Literal
 
-prompt_text = "Analyse this pytest failure log and classify it: This is the log here:" 
+prompt_text = "Analyse these pytest failure logs and classify them. Use the confidence levels to gauge how accurate you think you are, either Low, Medium or High. This is the log to analyse:" 
 PROMPT_VERSION = "v1"
 PROMPT_HASH = hashlib.sha256(prompt_text.encode()).hexdigest()[:8]
 AI_MODEL = "gemma4:e2b"
 new_prompt_version = PROMPT_VERSION
+
+rubric = "------------RUBRIC------------" \
+         "Real Defect: An issue with the code, something like an operator going wrong in the calculator or a result being incorrect as a value returned is wrong." \
+         "Environmental Issue: Missing imports, missing files, something with the users environment is wrong and stopped the tests from working." \
+         "Flaky/Timing Issue: Sometimes the tests pass, other times they fail - look for similar tests passing where one fails - timing issues." \
+         "False Positive Issue: Nothing wrong in the code, so it is adding together without issue, instead the test is incorrectly written or experienced a bug" \
+         "Ordering Issue: A test that works stand-alone but fails when conducted with other tests, look for variables that are carried across tests." \
+         "No Coverage: Pytest silently passing without issues, without realising that it is wrong, something like no tests were ran, or less tests cause one was mislabelled'"
 
 class TestFailures(BaseModel):
     category: Literal['Real Defect', 'Environmental Issue', 'Flaky/Timing Issue', 'False Positive Issue', 'Ordering Issue', 'No Coverage']
@@ -54,7 +62,7 @@ for testlog in case_files:
         messages=[
             {
             'role': 'user',
-            'content': f'{prompt_text} {log}',
+            'content': f'{prompt_text} {log} Please use the following rubric to understand the catergories, choose only one, here is the {rubric}',
             },
         ],
         options = {"temperature": 0},
