@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from pathlib import Path
 from typing import Literal
 
-prompt_text = "Analyse these pytest failure logs and classify them. Use the confidence levels to gauge how accurate you think you are, either Low, Medium or High. This is the log to analyse:" 
+prompt_text = "Analyse these pytest failure logs and classify them. Use the source and test code to help. Use the confidence levels to gauge how accurate you think you are, either Low, Medium or High." 
 PROMPT_VERSION = "v1"
 PROMPT_HASH = hashlib.sha256(prompt_text.encode()).hexdigest()[:8]
 AI_MODEL = "gemma4:e2b"
@@ -19,7 +19,9 @@ rubric = "------------RUBRIC------------" \
          "Flaky/Timing Issue: Sometimes the tests pass, other times they fail - look for similar tests passing where one fails - timing issues." \
          "False Positive Issue: Nothing wrong in the code, so it is adding together without issue, instead the test is incorrectly written or experienced a bug" \
          "Ordering Issue: A test that works stand-alone but fails when conducted with other tests, look for variables that are carried across tests." \
-         "No Coverage: Pytest silently passing without issues, without realising that it is wrong, something like no tests were ran, or less tests cause one was mislabelled'"
+         "No Coverage: Pytest silently passing without issues, without realising that it is wrong, something like no tests were ran, or less tests cause one was mislabelled'\n"
+
+
 
 class TestFailures(BaseModel):
     category: Literal['Real Defect', 'Environmental Issue', 'Flaky/Timing Issue', 'False Positive Issue', 'Ordering Issue', 'No Coverage']
@@ -52,24 +54,29 @@ except FileNotFoundError, json.JSONDecodeError:
     ai_json_result_file = {}
 
 results = []
-for testlog in case_files:
-    with open(testlog) as case_logs:
+for source_dir in sorted(Path("source_of_broken_code").iterdir()):
+    log_path = Path("failures") / f"{source_dir.name}.txt"
+    with open(log_path) as case_logs:
         log = case_logs.read()
 
+        blocks = []
+        for source_code in sorted(source_dir.glob("*.py")):
+            blocks.append(f"--- Source: {source_code.name} ---\n {source_code.read_text()}")
+        source_text = "\n\n".join(blocks)
 
         response: ChatResponse = chat(
         model='gemma4:e2b',
         messages=[
             {
             'role': 'user',
-            'content': f'{prompt_text} {log} Please use the following rubric to understand the catergories, choose only one, here is the {rubric}',
+            'content': f'{prompt_text} Please use the following rubric to understand the catergories, choose only one, here is the rubric: {rubric}, here is source and test code: {source_text} and here is the log file: {log} ',
             },
         ],
         options = {"temperature": 0},
         format=TestFailures.model_json_schema()
         )
         ai_results = json.loads(response['message']['content'])
-        ai_results["filename"] = str(testlog.name)
+        ai_results["filename"] = str(log_path.name)
         results.append(ai_results)
 
 with open(ai_result_log, "w") as ai_file:
