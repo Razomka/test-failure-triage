@@ -33,8 +33,8 @@ if PROMPT_HASH not in json_file:
         json.dump(json_file, hash_file)
 
 
-fail_path = Path("failures")
-case_files = list(fail_path.glob('**/case*.txt'))
+fail_path = Path("failures/")
+case_files = list(fail_path.glob('case*.txt'))
 
 ai_result_log = Path(f"ai_results/ai_results_{AI_MODEL}_{new_prompt_version}_{dt.datetime.now().strftime('%Y%m%d-%H%M%S')}.json")
 try:
