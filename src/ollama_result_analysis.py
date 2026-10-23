@@ -23,7 +23,7 @@ for ai_result in ai_result_path:
             for result in json_result_file["results"]:
                 no_of_files += 1
                 label_entry = new_json_label_file[result["filename"]]
-                print(f"Label: {label_entry['filename']} {label_entry['label']} AI: {result['filename']} {result['category']} AI Reasoning: {result["reasoning"]}\n")
+                # print(f"Label: {label_entry['filename']} {label_entry['label']} AI: {result['filename']} {result['category']} AI Reasoning: {result["reasoning"]}\n")
                 confidence_key = result["confidence"]
                 confidence_dict[confidence_key] = confidence_dict.get(confidence_key, 0) + 1
                 confusion_key = (label_entry['label'], result['category'])
