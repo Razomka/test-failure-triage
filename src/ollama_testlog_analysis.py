@@ -12,16 +12,7 @@ AI_MODEL = "gemma4:e2b"
 FAILURES_DIR = Path("failures")
 SOURCES_DIR = Path("src")
 
-
-class TestFailures(BaseModel):
-    category: Literal['Real Defect', 'Environmental Issue', 'Flaky/Timing Issue', 'False Positive Issue', 'Ordering Issue', 'No Coverage']
-    reasoning: str
-    confidence: Literal['Low', 'Medium', 'High']
-
-def build_prompt(source_dir: str = None):
-    '''Builds the prompt, first it takes a standard prompt and hashes it, then it adds the requires paths.
-       It has two prompts, one where source code is given, one where it is not.'''
-    rubric = "------------ RUBRIC ------------" \
+RUBRIC = "------------ RUBRIC ------------" \
          "Real Defect: An issue with the code, something like an operator going wrong in the calculator or a result being incorrect as a value returned is wrong." \
          "Environmental Issue: Missing imports, missing files, something with the users environment is wrong and stopped the tests from working." \
          "Flaky/Timing Issue: Sometimes the tests pass, other times they fail - look for similar tests passing where one fails - timing issues." \
@@ -33,18 +24,26 @@ def build_prompt(source_dir: str = None):
          "Medium: Logs contain some evidence for category but could also easily apply another category" \
          "Low: Logs contain very little evidence for any category"
 
-    if source_dir:
-        given_prompt = f'Analyse these pytest failure logs and classify them. Use the source and test code to help.\n' \
-                       f'Use the confidence levels to gauge how accurate you think you are, either Low, Medium or High.\n' \
-                       f'Use the following rubric to understand the catergories, choose only one, here is the rubric: {rubric}\n' \
-                       f'Here is the source code: {source_dir}' \
-                       f'and here is the log file: \n'
-    else:
-        given_prompt = f'Analyse these pytest failure logs and classify them. Use the source and test code to help.\n' \
-                       f'Use the confidence levels to gauge how accurate you think you are, either Low, Medium or High.\n' \
-                       f'Use the following rubric to understand the catergories, choose only one, here is the rubric: {rubric}\n' \
-                       f'and here is the log file: \n'
+class TestFailures(BaseModel):
+    category: Literal['Real Defect', 'Environmental Issue', 'Flaky/Timing Issue', 'False Positive Issue', 'Ordering Issue', 'No Coverage']
+    reasoning: str
+    confidence: Literal['Low', 'Medium', 'High']
 
+def template_check(source_dir: str = None):
+    if source_dir:
+        prompt_with_source = 'Analyse these pytest failure logs and classify them. Use the source and test code to help. ' \
+                             'Use the confidence levels to gauge how accurate you think you are, either Low, Medium or High. ' \
+                             'Use the following rubric to understand the catergories, choose only one, here is the rubric: {rubric}\n' \
+                             'Here is the source code: {source}\n' \
+                             'and here is the log file: {log}\n'
+        given_prompt = prompt_with_source
+    else:
+        prompt_without_source = 'Analyse these pytest failure logs and classify them. ' \
+                                'Use the confidence levels to gauge how accurate you think you are, either Low, Medium or High. ' \
+                                'Use the following rubric to understand the catergories, choose only one, here is the rubric: {rubric}\n' \
+                                'and here is the log file: {log}\n' 
+        given_prompt = prompt_without_source
+    
     prompt_hash = hashlib.sha256(given_prompt.encode()).hexdigest()[:8]
 
     hash_path = Path("version_hash.json")
@@ -65,7 +64,18 @@ def build_prompt(source_dir: str = None):
     else:
         prompt_version = json_file[prompt_hash]
 
-    return given_prompt, prompt_version
+    return given_prompt, prompt_hash, prompt_version
+        
+def build_prompt(given_prompt: str, log: str, source_dir: str = None):
+    '''Builds the prompt, first it takes a standard prompt and hashes it, then it adds the requires paths.
+       It has two prompts, one where source code is given, one where it is not.'''
+
+    if source_dir:
+        given_prompt = given_prompt.format(rubric=RUBRIC, source=source_dir, log=log)
+    else:
+        given_prompt = given_prompt.format(rubric=RUBRIC, log=log)
+
+    return given_prompt
 
 def generate_list_of_files(directory_to_analyse: Path, source_dir: str = None):
     '''Takes a path, gathers all cases and places them into a list.
@@ -77,32 +87,35 @@ def generate_list_of_files(directory_to_analyse: Path, source_dir: str = None):
             list_of_files.append(case_path)
     return list_of_files
 
+def call_ai(given_prompt) -> TestFailures:
+    response: ChatResponse = chat(
+                model='gemma4:e2b',
+                messages=[
+                    {
+                    'role': 'user',
+                    'content': f"{given_prompt}",
+                    },
+                ],
+                format=TestFailures.model_json_schema(),
+                options = {"temperature": 0}
+                )
+    return TestFailures.model_validate(json.loads(response['message']['content']))
 
 def ollama_analysis(directory_to_analyse: Path, source_dir: str = None):
     '''The main place where the AI runs over the cases and analyses them.
        Returns back a json which is appended to a list to be written to a file'''
     results = []
     list_of_files = generate_list_of_files(directory_to_analyse)
-    given_prompt, prompt_version = build_prompt()
+    given_prompt, prompt_hash, prompt_version = template_check()
     if source_dir:
         pass
     for case_path in list_of_files:
         file_path = case_path
         with open(file_path) as f:
             log = f.read()
-
-            response: ChatResponse = chat(
-            model='gemma4:e2b',
-            messages=[
-                {
-                'role': 'user',
-                'content': f"{given_prompt} {log}",
-                },
-            ],
-            options = {"temperature": 0},
-            format=TestFailures.model_json_schema()
-            )
-            ai_results = json.loads(response['message']['content'])
+            prompt_to_ai = build_prompt(given_prompt, log)
+            ai_results = call_ai(prompt_to_ai)
+            ai_results = ai_results.model_dump()
             ai_results["filename"] = str(file_path.name)
             results.append(ai_results)
 
