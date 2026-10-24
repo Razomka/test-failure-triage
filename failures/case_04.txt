@@ -1,0 +1,22 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/james/Workspace/test-failure-triage
+plugins: anyio-4.15.1
+collected 9 items
+
+tests/test_calc.py ........F                                             [100%]
+
+=================================== FAILURES ===================================
+_____________________________ test_false_positive ______________________________
+
+    def test_false_positive():
+>       with pytest.raises(NotANumberError, match="The input entered was neither int or float compatible," \
+                                  " therefore this error has been encountered"):
+E                                 AssertionError: Regex pattern did not match.
+E                                   Expected regex: 'The input entered was neither int or float compatible, therefore this error has been encountered'
+E                                   Actual message: 'The input entered was not int or float compatible, therefore this error has been encountered'
+
+tests/test_calc.py:26: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_calc.py::test_false_positive - AssertionError: Regex patter...
+========================= 1 failed, 8 passed in 0.03s ==========================

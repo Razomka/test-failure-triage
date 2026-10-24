@@ -2,7 +2,10 @@ class NotANumberError(ValueError):
     """Input that isn't an int or float"""
 
 def check_types(value):
-    c = 0
+
+    if value == "inf" or value == "nan":
+        raise NotANumberError("Apologies, we don't accept inf or nan") from None
+
     for check in (int, float):
         try:
             value = check(value)
@@ -13,13 +16,11 @@ def check_types(value):
     
     if type(value) == str:
         raise NotANumberError("The input entered was neither int or float compatible," \
-                                " therefore this error has been encountered") from None
+                              " therefore this error has been encountered") from None
     else:
         return value
 
-def calc():
-    x = input("First number please: ")
-    y = input("Second number please: ")
+def calc(x, y):
 
     first_number = check_types(x)
     second_number = check_types(y)
@@ -32,5 +33,10 @@ def calc():
     print(f"Adding: {first_number} and {second_number} to get {final_number}")
     return final_number
 
+def main():
+    x = input("First number please: ")
+    y = input("Second number please: ")
+    calc(x, y)
+
 if __name__ == "__main__":
-    number = calc()
+    main()

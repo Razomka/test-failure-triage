@@ -1,0 +1,25 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/james/Workspace/test-failure-triage
+plugins: anyio-4.15.1
+collected 8 items
+
+tests/test_calc.py .F......                                              [100%]
+
+=================================== FAILURES ===================================
+_____________________________ test_string_to_float _____________________________
+
+    def test_string_to_float():
+>       assert calc("0.1", "0.2") == 0.3
+E       AssertionError: assert 0.30000000000000004 == 0.3
+E        +  where 0.30000000000000004 = calc('0.1', '0.2')
+
+tests/test_calc.py:11: AssertionError
+----------------------------- Captured stdout call -----------------------------
+Confirming either int or float
+First number Type <class 'float'>
+Second number Type <class 'float'>
+Adding: 0.1 and 0.2 to get 0.30000000000000004
+=========================== short test summary info ============================
+FAILED tests/test_calc.py::test_string_to_float - AssertionError: assert 0.30...
+========================= 1 failed, 7 passed in 0.04s ==========================

@@ -1,0 +1,20 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.1.1, pluggy-1.7.0
+rootdir: /home/james/Workspace/test-failure-triage
+collected 9 items
+
+tests/test_calc.py ........F                                             [100%]
+
+=================================== FAILURES ===================================
+________________________________ test_ordering _________________________________
+
+    def test_ordering():
+        list_of_tests.append("Passed")
+>       assert len(list_of_tests) == 1
+E       AssertionError: assert 9 == 1
+E        +  where 9 = len(['Passed', 'Passed', 'Passed', 'Passed', 'Passed', 'Passed', ...])
+
+tests/test_calc.py:31: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_calc.py::test_ordering - AssertionError: assert 9 == 1
+========================= 1 failed, 8 passed in 0.03s ==========================
