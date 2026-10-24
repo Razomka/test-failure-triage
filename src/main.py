@@ -14,7 +14,7 @@ def read_root():
 
 @app.post("/classify")
 def classify(request: ClassifyRequest) -> TestFailures:
-    prompt, _, _ = template_check()
+    prompt, _ = template_check()
     prompt = build_prompt(prompt, request.log)
     try:
         return call_ai(prompt)

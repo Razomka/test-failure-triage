@@ -64,7 +64,7 @@ def template_check(source_dir: str = None):
     else:
         prompt_version = json_file[prompt_hash]
 
-    return given_prompt, prompt_hash, prompt_version
+    return given_prompt, prompt_version
         
 def build_prompt(given_prompt: str, log: str, source_dir: str = None):
     '''Builds the prompt, first it takes a standard prompt and hashes it, then it adds the requires paths.
@@ -106,7 +106,7 @@ def ollama_analysis(directory_to_analyse: Path, source_dir: str = None):
        Returns back a json which is appended to a list to be written to a file'''
     results = []
     list_of_files = generate_list_of_files(directory_to_analyse)
-    given_prompt, prompt_hash, prompt_version = template_check()
+    given_prompt, prompt_version = template_check()
     if source_dir:
         pass
     for case_path in list_of_files:
