@@ -1,3 +1,4 @@
+import argparse
 import datetime as dt
 import hashlib
 import json
@@ -29,8 +30,9 @@ class TestFailures(BaseModel):
     reasoning: str
     confidence: Literal['Low', 'Medium', 'High']
 
-def template_check(source_dir: str = None):
+def template_check(source_dir: dict = None):
     if source_dir:
+
         prompt_with_source = 'Analyse these pytest failure logs and classify them. Use the source and test code to help. ' \
                              'Use the confidence levels to gauge how accurate you think you are, either Low, Medium or High. ' \
                              'Use the following rubric to understand the catergories, choose only one, here is the rubric: {rubric}\n' \
@@ -66,7 +68,7 @@ def template_check(source_dir: str = None):
 
     return given_prompt, prompt_version
         
-def build_prompt(given_prompt: str, log: str, source_dir: str = None):
+def build_prompt(given_prompt: str, log: str, source_dir: dict = None):
     '''Builds the prompt, first it takes a standard prompt and hashes it, then it adds the requires paths.
        It has two prompts, one where source code is given, one where it is not.'''
 
@@ -77,9 +79,21 @@ def build_prompt(given_prompt: str, log: str, source_dir: str = None):
 
     return given_prompt
 
-def generate_list_of_files(directory_to_analyse: Path, source_dir: str = None):
+def generate_list_of_files(directory_to_analyse: Path, file_name: str = None, source_dir: str = None):
     '''Takes a path, gathers all cases and places them into a list.
        Currently set for cases but can be changed to be name agnostic'''
+    broken_code_dir = {}
+    if source_dir:
+        for src_code_path in sorted(source_dir.iterdir()):
+            for broken_code_src in src_code_path:
+                if broken_code_dir[src_code_path.name]:
+                    broken_code_dir[src_code_path.name] = [broken_code_src, broken_code_dir[src_code_path.name]]
+                else:
+                    broken_code_dir[src_code_path.name] = broken_code_src
+    else:
+        broken_code_dir = None
+    if file_name:
+        return file_name, broken_code_dir
     list_of_files = []  
     for case in sorted(directory_to_analyse.iterdir()):
         if "case_" in case.name:
@@ -101,15 +115,19 @@ def call_ai(given_prompt) -> TestFailures:
                 )
     return TestFailures.model_validate(json.loads(response['message']['content']))
 
-def ollama_analysis(directory_to_analyse: Path, source_dir: str = None):
+def ollama_analysis(directory_to_analyse: Path, file_name: str = None, source_dir: str = None):
     '''The main place where the AI runs over the cases and analyses them.
        Returns back a json which is appended to a list to be written to a file'''
     results = []
-    list_of_files = generate_list_of_files(directory_to_analyse)
-    given_prompt, prompt_version = template_check()
     if source_dir:
-        pass
-    for case_path in list_of_files:
+        source_dir = Path("source_of_broken_code")
+    list_of_failures, dict_of_source_dir = generate_list_of_files(directory_to_analyse, file_name, source_dir)
+    if dict_of_source_dir:
+        given_prompt, prompt_version = template_check(dict_of_source_dir)
+    else:
+        given_prompt, prompt_version = template_check()
+
+    for case_path in list_of_failures:
         file_path = case_path
         with open(file_path) as f:
             log = f.read()
@@ -136,7 +154,33 @@ def write_results(results: list, prompt_version: str = PROMPT_VERSION):
         json.dump(metadata_json_plus_results, ai_file)
 
 def main():
-    results, prompt_version = ollama_analysis(FAILURES_DIR)
+
+    desc = """Runs AI over pytest failure logs located in failures directory - Default mode.\n
+            Optional modes - run AI over one file, located in failures directory, provide file name.\n
+            Add source code to the AI prompt to further help understand the failure(s).\n
+            Both these options can be used at the same time, e.g. use AI on one file with the source code."""
+    
+    file_help = """Give a file name for the AI to analyze, this only takes one file. Can be used with -s option"""
+
+    source_help = """Add source code to be added to the AI prompt. The source code has to be in 'source_of_broken_code' dir.
+                     See examples below to organise the directory correctly for use.
+                     This can be used with the default e.g just -s or can be used with file -f <filename> -s """
+    
+    epilog = """Pytest failures must be in 'failures/' or they will not be found in either default or -f options.\n
+                Source code has to be in 'source_of_broken_code/' and then an additional directory is required.\n
+                This directory needs to match the names of the failure logs e.g. case_01.txt and a directory called case_01.\n
+                Finally, this extra directory inside of 'source_of_broken_code/' contains the .py source code.\n
+                Example failure log called 'case_01.txt' in 'failures/', inside of 'source_of_broken_code/' a directory
+                 called 'case_01/' and inside of that a .py file which can be called anything 'broken_code_for_case_01.py'."""
+    
+    parser = argparse.ArgumentParser(prog="ollama_testlog_analysis", description=f"{desc}", usage="%(prog)s [options]", epilog=f"{epilog}")
+    parser.add_argument("-f", "--file", nargs="?",  help=f"{file_help}")
+    parser.add_argument("-s", "--source", action="store_true", help=f"{source_help}")
+    args = parser.parse_args()
+    file_name = args.file
+    source_dir = args.source
+
+    results, prompt_version = ollama_analysis(FAILURES_DIR, file_name, source_dir)
     write_results(results, prompt_version)
 
 
