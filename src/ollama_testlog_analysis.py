@@ -85,14 +85,18 @@ def generate_list_of_files(directory_to_analyse: Path, file_name: str = None, so
     broken_code_dir = {}
     if source_dir:
         for src_code_path in sorted(source_dir.iterdir()):
-            for broken_code_src in src_code_path:
-                if broken_code_dir[src_code_path.name]:
-                    broken_code_dir[src_code_path.name] = [broken_code_src, broken_code_dir[src_code_path.name]]
-                else:
+            for broken_code_src in sorted(src_code_path.iterdir()):
+                try:
+                    if broken_code_dir[src_code_path.name]:
+                        broken_code_dir[src_code_path.name] = [broken_code_src, broken_code_dir[src_code_path.name]]
+                    else:
+                        broken_code_dir[src_code_path.name] = broken_code_src
+                except KeyError:
                     broken_code_dir[src_code_path.name] = broken_code_src
     else:
         broken_code_dir = None
     if file_name:
+        file_name = [Path(FAILURES_DIR.name + f"/{file_name}")]
         return file_name, broken_code_dir
     list_of_files = []  
     for case in sorted(directory_to_analyse.iterdir()):
@@ -129,9 +133,21 @@ def ollama_analysis(directory_to_analyse: Path, file_name: str = None, source_di
 
     for case_path in list_of_failures:
         file_path = case_path
+        for key, value in dict_of_source_dir.items():
+            if file_path.name == (key + ".txt"):
+                with open(value[0]) as s:
+                    first_source = s.read()
+                with open(value[1]) as s:
+                    second_source = s.read()
+                source_code = f"{first_source} + ' ' + {second_source}"
+       
         with open(file_path) as f:
             log = f.read()
-            prompt_to_ai = build_prompt(given_prompt, log)
+            if source_code:
+                prompt_to_ai = build_prompt(given_prompt, log, source_code)
+            else:
+                prompt_to_ai = build_prompt(given_prompt, log)
+        
             ai_results = call_ai(prompt_to_ai)
             ai_results = ai_results.model_dump()
             ai_results["filename"] = str(file_path.name)
