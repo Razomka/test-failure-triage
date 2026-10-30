@@ -103,7 +103,7 @@ def generate_list_of_files(directory_to_analyse: Path, file_name: str = None, so
         if "case_" in case.name:
             case_path = case
             list_of_files.append(case_path)
-    return list_of_files
+    return list_of_files, broken_code_dir
 
 def call_ai(given_prompt) -> TestFailures:
     response: ChatResponse = chat(
@@ -133,13 +133,18 @@ def ollama_analysis(directory_to_analyse: Path, file_name: str = None, source_di
 
     for case_path in list_of_failures:
         file_path = case_path
-        for key, value in dict_of_source_dir.items():
-            if file_path.name == (key + ".txt"):
-                with open(value[0]) as s:
-                    first_source = s.read()
-                with open(value[1]) as s:
-                    second_source = s.read()
-                source_code = f"{first_source} + ' ' + {second_source}"
+        if dict_of_source_dir:
+            for key, value in dict_of_source_dir.items():
+                if file_path.name == (key + ".txt"):
+                    with open(value[0]) as s:
+                        first_source = s.read()
+                    with open(value[1]) as s:
+                        second_source = s.read()
+                    source_code = f"{first_source} + ' ' + {second_source}"
+                else:
+                    source_code = " "
+        else:
+            source_code = dict_of_source_dir
        
         with open(file_path) as f:
             log = f.read()

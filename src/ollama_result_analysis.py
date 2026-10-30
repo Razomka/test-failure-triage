@@ -8,7 +8,7 @@ labels = Path("failures/labels.json")
 new_json_label_file = {}
 entries_dict = {}
 
-for ai_result in ai_result_path:
+for ai_result in sorted(ai_result_path):
     count = 0
     no_of_files = 0
     confusion_dict = {}
